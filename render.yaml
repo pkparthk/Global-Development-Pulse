@@ -3,8 +3,9 @@ services:
     name: global-development-pulse-backend
     env: python
     region: oregon
-    buildCommand: cd backend && pip install -r requirements.txt
-    startCommand: cd backend && python manage.py migrate && gunicorn project.wsgi:application --bind 0.0.0.0:$PORT
+  # Use python -m pip to ensure the correct pip is used and reference requirements by path
+  buildCommand: python scripts/check_requirements.py ; python -m pip install -r backend/requirements.txt
+  startCommand: cd backend && python manage.py migrate && gunicorn project.wsgi:application --bind 0.0.0.0:$PORT
     envVars:
       - key: PYTHON_VERSION
         value: 3.11.10
