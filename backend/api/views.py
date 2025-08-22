@@ -194,6 +194,27 @@ def refresh_view(request):
 
 
 @api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def user_profile_view(request):
+    """
+    Get current user profile information
+    """
+    log_api_request(request, 'get_user_profile', user=request.user)
+    
+    try:
+        return Response({
+            'user': UserSerializer(request.user).data
+        }, status=status.HTTP_200_OK)
+    except Exception as e:
+        logger.error(f"Error fetching user profile: {e}")
+        return create_error_response(
+            'PROFILE_ERROR',
+            'Failed to fetch user profile',
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['GET'])
 @permission_classes([AllowAny])
 def countries_view(request):
     """

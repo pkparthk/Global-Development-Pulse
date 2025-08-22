@@ -8,6 +8,7 @@ urlpatterns = [
     path('auth/logout/', views.logout_view, name='logout'),
     path('auth/register/', views.register_view, name='register'),
     path('auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('auth/profile/', views.user_profile_view, name='user_profile'),
     
     # Metadata endpoints
     path('meta/countries/', views.countries_view, name='countries'),
