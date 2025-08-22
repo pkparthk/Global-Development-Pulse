@@ -40,6 +40,7 @@ pnpm-debug.log*
 .env
 docker-compose.override.yml
 .env.example
+.env.production.template
 
 # VS Code
 .vscode/

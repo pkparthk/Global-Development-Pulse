@@ -1,0 +1,3 @@
+# Static files directory
+# This directory is referenced in STATICFILES_DIRS in settings.py
+# Add any custom CSS, JS, or other static assets here
