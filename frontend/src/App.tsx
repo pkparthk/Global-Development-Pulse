@@ -6,27 +6,26 @@ import {
 } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Toaster } from "sonner";
 import { validateEnv } from "@/utils";
 import LoginPage from "@/pages/Login";
+import RegisterPage from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 import "@/index.css";
 
-// Validate environment variables on app start
 try {
   validateEnv();
 } catch (error) {
   console.error("Environment validation failed:", error);
 }
 
-// Create a client for React Query
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, // 5 minutes
-      gcTime: 1000 * 60 * 10, // 10 minutes (formerly cacheTime)
+      staleTime: 1000 * 60 * 5,
+      gcTime: 1000 * 60 * 10,
       retry: (failureCount, error) => {
-        // Don't retry on 4xx errors
         if (error && typeof error === "object" && "status" in error) {
           const status = (error as { status: number }).status;
           if (status >= 400 && status < 500) {
@@ -52,6 +51,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Navigate to="/dashboard" replace />} />
               <Route path="/login" element={<LoginPage />} />
+              <Route path="/register" element={<RegisterPage />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="*" element={<Navigate to="/dashboard" replace />} />
             </Routes>
@@ -62,6 +62,9 @@ function App() {
         {import.meta.env.VITE_ENABLE_REACT_QUERY_DEVTOOLS === "true" && (
           <ReactQueryDevtools initialIsOpen={false} />
         )}
+
+        {/* Toast notifications */}
+        <Toaster position="top-right" richColors />
       </QueryClientProvider>
     </ErrorBoundary>
   );

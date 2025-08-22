@@ -1,7 +1,12 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { apiService, ApiError } from "./api";
-import { SeriesParams, LoginRequest, QUERY_KEYS } from "@/types";
+import {
+  SeriesParams,
+  LoginRequest,
+  RegisterRequest,
+  QUERY_KEYS,
+} from "@/types";
 
 export function useAuth() {
   const queryClient = useQueryClient();
@@ -24,11 +29,15 @@ export function useAuth() {
       toast.success("Logged out successfully");
       // Clear all cached data
       queryClient.clear();
+      // Force page reload to reset application state and redirect to login
+      window.location.href = "/login";
     },
     onError: (error: ApiError) => {
       toast.error(error.message || "Logout failed");
       // Clear cache anyway
       queryClient.clear();
+      // Force page reload even on error
+      window.location.href = "/login";
     },
   });
 
@@ -113,16 +122,38 @@ export function useSeriesData(params: SeriesParams, enabled: boolean = true) {
   });
 }
 
+export function useRegister() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (userData: RegisterRequest) => apiService.register(userData),
+    onSuccess: (data) => {
+      // Tokens are already stored by apiService.register()
+      // Invalidate and refetch any queries that depend on authentication
+      queryClient.invalidateQueries();
+
+      toast.success(
+        `Welcome ${data.user.first_name}! Registration successful!`
+      );
+    },
+    onError: (error) => {
+      console.error("Registration error:", error);
+      toast.error(
+        error instanceof ApiError
+          ? error.message
+          : "Registration failed. Please try again."
+      );
+    },
+  });
+}
+
 export function useLogin() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (credentials: LoginRequest) => apiService.login(credentials),
-    onSuccess: (data) => {
-      // Store the access token
-      localStorage.setItem("access_token", data.access);
-      localStorage.setItem("refresh_token", data.refresh);
-
+    onSuccess: () => {
+      // Tokens are already stored by apiService.login()
       // Invalidate and refetch any queries that depend on authentication
       queryClient.invalidateQueries();
 

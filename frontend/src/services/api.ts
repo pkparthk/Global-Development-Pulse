@@ -1,6 +1,7 @@
 import {
   User,
   LoginRequest,
+  RegisterRequest,
   LoginResponse,
   Country,
   Indicator,
@@ -17,7 +18,10 @@ class ApiService {
 
   constructor() {
     this.baseURL = getApiBaseUrl();
-    this.accessToken = localStorage.getItem("accessToken");
+    // Check both possible token keys for compatibility
+    this.accessToken =
+      localStorage.getItem("access_token") ||
+      localStorage.getItem("accessToken");
   }
 
   /**
@@ -26,8 +30,12 @@ class ApiService {
   setAccessToken(token: string | null): void {
     this.accessToken = token;
     if (token) {
+      // Store in both keys for compatibility
+      localStorage.setItem("access_token", token);
       localStorage.setItem("accessToken", token);
     } else {
+      // Remove both keys
+      localStorage.removeItem("access_token");
       localStorage.removeItem("accessToken");
     }
   }
@@ -194,22 +202,43 @@ class ApiService {
   }
 
   /**
+   * Register new user
+   */
+  async register(userData: RegisterRequest): Promise<LoginResponse> {
+    const response = await this.request<LoginResponse>("/api/auth/register/", {
+      method: "POST",
+      body: JSON.stringify(userData),
+    });
+
+    // Store tokens (auto-login after registration)
+    this.setAccessToken(response.access);
+    localStorage.setItem("refreshToken", response.refresh);
+
+    return response;
+  }
+
+  /**
    * Logout user
    */
   async logout(): Promise<void> {
-    const refreshToken = localStorage.getItem("refreshToken");
+    const refreshToken =
+      localStorage.getItem("refreshToken") ||
+      localStorage.getItem("refresh_token");
 
     try {
-      await this.request("/api/auth/logout/", {
-        method: "POST",
-        body: JSON.stringify({ refresh: refreshToken }),
-      });
+      if (refreshToken) {
+        await this.request("/api/auth/logout/", {
+          method: "POST",
+          body: JSON.stringify({ refresh: refreshToken }),
+        });
+      }
     } catch (error) {
       // Continue with logout even if API call fails
       console.warn("Logout API call failed:", error);
     } finally {
-      // Clear tokens regardless of API call result
+      // Clear all tokens regardless of API call result
       this.setAccessToken(null);
+      localStorage.removeItem("refresh_token");
       localStorage.removeItem("refreshToken");
     }
   }
@@ -218,7 +247,9 @@ class ApiService {
    * Refresh access token
    */
   async refreshToken(): Promise<string> {
-    const refreshToken = localStorage.getItem("refreshToken");
+    const refreshToken =
+      localStorage.getItem("refreshToken") ||
+      localStorage.getItem("refresh_token");
 
     if (!refreshToken) {
       throw new ApiError("No refresh token available", "NO_REFRESH_TOKEN", 401);
@@ -238,6 +269,7 @@ class ApiService {
     } catch (error) {
       // If refresh fails, clear all tokens
       this.setAccessToken(null);
+      localStorage.removeItem("refresh_token");
       localStorage.removeItem("refreshToken");
       throw error;
     }

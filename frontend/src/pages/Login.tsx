@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { LoadingSpinner } from "@/components/ui/loading";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn, UserPlus } from "lucide-react";
 
 const loginSchema = z.object({
   username: z.string().min(1, "Username is required"),
@@ -159,18 +159,21 @@ export default function LoginPage() {
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-300" />
                 </div>
-                {/* <div className="relative flex justify-center text-sm">
+                <div className="relative flex justify-center text-sm">
                   <span className="px-2 bg-white text-gray-500">
-                    Demo Access
+                    New to our platform?
                   </span>
-                </div> */}
+                </div>
               </div>
-              {/* <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800 text-center font-medium">
-                  🚀 Try the demo: <span className="font-bold">testuser</span> /{" "}
-                  <span className="font-bold">testpass123</span>
-                </p>
-              </div> */}
+              <div className="text-center">
+                <Link
+                  to="/register"
+                  className="inline-flex items-center justify-center w-full h-11 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-400 font-medium rounded-lg transition-all duration-200"
+                >
+                  <UserPlus className="w-5 h-5 mr-2" />
+                  Create New Account
+                </Link>
+              </div>
             </div>
           </CardContent>
         </Card>
