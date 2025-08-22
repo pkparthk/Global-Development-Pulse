@@ -19,14 +19,9 @@ SECRET_KEY = config('DJANGO_SECRET_KEY', default='django-insecure-change-this-in
 DEBUG = config('DEBUG', default=True, cast=bool)
 
 # ALLOWED_HOSTS configuration
-# In production (when DEBUG=False), allow all hosts for simplicity on Render
-# In development, restrict to localhost
-if DEBUG:
-    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
-else:
-    # Production: allow Render domain and any other specified hosts
-    default_hosts = 'global-development-pulse-backend.onrender.com,localhost,127.0.0.1'
-    ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=default_hosts).split(',')
+# Always include Render domain and localhost for flexibility
+default_hosts = 'global-development-pulse-backend.onrender.com,localhost,127.0.0.1'
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=default_hosts).split(',')
 
 # Application definition
 INSTALLED_APPS = [
