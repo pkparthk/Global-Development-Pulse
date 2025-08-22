@@ -1,5 +1,5 @@
-# Use Python 3.11 slim image
-FROM python:3.11-slim
+# Use Python 3.11 slim image (compatible with Django 3.2 and cgi module)
+FROM python:3.11.10-slim
 
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
