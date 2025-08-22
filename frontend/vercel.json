@@ -20,6 +20,6 @@
     }
   ],
   "env": {
-    "VITE_API_BASE_URL": "https://your-backend.railway.app"
+    "VITE_API_BASE_URL": "https://global-development-pulse-backend.onrender.com"
   }
 }
