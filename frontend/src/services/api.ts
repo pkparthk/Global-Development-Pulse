@@ -18,15 +18,11 @@ class ApiService {
 
   constructor() {
     this.baseURL = getApiBaseUrl();
-    // Check both possible token keys for compatibility
     this.accessToken =
       localStorage.getItem("access_token") ||
       localStorage.getItem("accessToken");
   }
-
-  /**
-   * Set the access token for authenticated requests
-   */
+  
   setAccessToken(token: string | null): void {
     this.accessToken = token;
     if (token) {
@@ -39,17 +35,11 @@ class ApiService {
       localStorage.removeItem("accessToken");
     }
   }
-
-  /**
-   * Get the current access token
-   */
+  
   getAccessToken(): string | null {
     return this.accessToken;
   }
 
-  /**
-   * Make HTTP request with error handling
-   */
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
@@ -60,7 +50,6 @@ class ApiService {
       "Content-Type": "application/json",
     };
 
-    // Add authorization header if token exists
     if (this.accessToken) {
       defaultHeaders.Authorization = `Bearer ${this.accessToken}`;
     }
@@ -76,7 +65,6 @@ class ApiService {
     try {
       const response = await fetch(url, config);
 
-      // Handle non-JSON responses
       const contentType = response.headers.get("content-type");
       if (!contentType?.includes("application/json")) {
         throw new Error(`Unexpected content type: ${contentType}`);
@@ -85,7 +73,6 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
-        // Handle API error responses
         if (data.error) {
           throw new ApiError(
             data.error.message,
@@ -106,7 +93,6 @@ class ApiService {
         throw error;
       }
 
-      // Handle network errors
       if (error instanceof TypeError) {
         throw new ApiError(
           "Network error - please check your connection",
@@ -129,7 +115,6 @@ class ApiService {
       "Content-Type": "application/json",
     };
 
-    // Don't add authorization header for public requests
 
     const config: RequestInit = {
       ...options,
@@ -142,7 +127,6 @@ class ApiService {
     try {
       const response = await fetch(url, config);
 
-      // Handle non-JSON responses
       const contentType = response.headers.get("content-type");
       if (!contentType?.includes("application/json")) {
         throw new Error(`Unexpected content type: ${contentType}`);
@@ -151,7 +135,6 @@ class ApiService {
       const data = await response.json();
 
       if (!response.ok) {
-        // Handle API error responses
         if (data.error) {
           throw new ApiError(
             data.error.message,
@@ -172,7 +155,6 @@ class ApiService {
         throw error;
       }
 
-      // Handle network errors
       if (error instanceof TypeError) {
         throw new ApiError(
           "Network error - please check your connection",
@@ -185,9 +167,6 @@ class ApiService {
     }
   }
 
-  /**
-   * Login user
-   */
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const response = await this.request<LoginResponse>("/api/auth/login/", {
       method: "POST",
@@ -201,9 +180,6 @@ class ApiService {
     return response;
   }
 
-  /**
-   * Register new user
-   */
   async register(userData: RegisterRequest): Promise<LoginResponse> {
     const response = await this.request<LoginResponse>("/api/auth/register/", {
       method: "POST",
@@ -217,9 +193,6 @@ class ApiService {
     return response;
   }
 
-  /**
-   * Logout user
-   */
   async logout(): Promise<void> {
     const refreshToken =
       localStorage.getItem("refreshToken") ||
@@ -233,19 +206,15 @@ class ApiService {
         });
       }
     } catch (error) {
-      // Continue with logout even if API call fails
+
       console.warn("Logout API call failed:", error);
-    } finally {
-      // Clear all tokens regardless of API call result
+    } finally {      
       this.setAccessToken(null);
       localStorage.removeItem("refresh_token");
       localStorage.removeItem("refreshToken");
     }
   }
-
-  /**
-   * Refresh access token
-   */
+  
   async refreshToken(): Promise<string> {
     const refreshToken =
       localStorage.getItem("refreshToken") ||
@@ -267,7 +236,6 @@ class ApiService {
       this.setAccessToken(response.access);
       return response.access;
     } catch (error) {
-      // If refresh fails, clear all tokens
       this.setAccessToken(null);
       localStorage.removeItem("refresh_token");
       localStorage.removeItem("refreshToken");
@@ -275,23 +243,14 @@ class ApiService {
     }
   }
 
-  /**
-   * Get list of countries
-   */
   async getCountries(): Promise<Country[]> {
     return this.publicRequest<Country[]>("/api/meta/countries/");
   }
 
-  /**
-   * Get list of indicators
-   */
   async getIndicators(): Promise<Indicator[]> {
     return this.publicRequest<Indicator[]>("/api/meta/indicators/");
   }
 
-  /**
-   * Get time series data
-   */
   async getSeriesData(params: SeriesParams): Promise<SeriesResponse> {
     const searchParams = new URLSearchParams();
 
@@ -306,9 +265,6 @@ class ApiService {
     );
   }
 
-  /**
-   * Get snapshot data
-   */
   async getSnapshotData(params: SnapshotParams): Promise<SnapshotResponse> {
     const searchParams = new URLSearchParams();
 
@@ -323,27 +279,20 @@ class ApiService {
     );
   }
 
-  /**
-   * Check if user is authenticated
-   */
   isAuthenticated(): boolean {
     return !!this.accessToken;
   }
 
-  /**
-   * Get current user info (if available from token)
-   */
+  
   getCurrentUser(): User | null {
     if (!this.accessToken) {
       return null;
     }
 
     try {
-      // Decode JWT payload (simple base64 decode)
       const payload = this.accessToken.split(".")[1];
       const decoded = JSON.parse(atob(payload));
 
-      // Return user info if available in token
       if (decoded.user_id) {
         return {
           id: decoded.user_id,
@@ -359,29 +308,22 @@ class ApiService {
 
     return null;
   }
-
-  /**
-   * Get current user profile from API
-   */
+  
   async getUserProfile(): Promise<User> {
-    // Debug: Check if we have a token
     if (!this.accessToken) {
       console.warn("No access token available for profile request");
       throw new ApiError("No authentication token", "NO_TOKEN", 401);
     }
 
-    console.log(
-      "Fetching user profile with token:",
-      this.accessToken?.substring(0, 20) + "..."
-    );
+    // console.log(
+    //   "Fetching user profile with token:",
+    //   this.accessToken?.substring(0, 20) + "..."
+    // );
     const response = await this.request<{ user: User }>("/api/auth/profile/");
     return response.user;
   }
 }
 
-/**
- * Custom API Error class
- */
 export class ApiError extends Error {
   constructor(
     message: string,
@@ -394,6 +336,5 @@ export class ApiError extends Error {
   }
 }
 
-// Export singleton instance
 export const apiService = new ApiService();
 export default apiService;

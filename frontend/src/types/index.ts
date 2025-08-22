@@ -6,7 +6,6 @@ export interface ApiError {
   };
 }
 
-// Authentication Types
 export interface User {
   id: number;
   username: string;
@@ -43,7 +42,6 @@ export interface RefreshResponse {
   access: string;
 }
 
-// Data Types
 export interface Country {
   code: string;
   name: string;
@@ -84,7 +82,6 @@ export interface SnapshotResponse {
   source: string;
 }
 
-// Query Parameter Types
 export interface SeriesParams {
   indicator: string;
   countries: string; // Comma-separated ISO3 codes
@@ -100,7 +97,6 @@ export interface SnapshotParams {
   countries: string; // Comma-separated ISO3 codes
 }
 
-// UI State Types
 export interface FilterState {
   indicator: string;
   countries: string[];
@@ -116,7 +112,6 @@ export interface DashboardState {
   chartType: "line" | "bar";
 }
 
-// Chart Data Types
 export interface ChartDataPoint {
   year: number;
   [countryCode: string]: number | null;
@@ -128,7 +123,6 @@ export interface BarChartDataPoint {
   name: string; // Country name for display
 }
 
-// URL State Types
 export interface URLParams {
   indicator?: string;
   countries?: string;
@@ -139,7 +133,6 @@ export interface URLParams {
   view?: "trend" | "compare";
 }
 
-// Component Props Types
 export interface ChartProps {
   data: ChartDataPoint[] | BarChartDataPoint[];
   title: string;
@@ -157,10 +150,8 @@ export interface FilterProps {
   isLoading?: boolean;
 }
 
-// Export Types
 export type ExportFormat = "csv" | "png";
 
-// Error Types
 export type ErrorType =
   | "network"
   | "authentication"
@@ -174,7 +165,6 @@ export interface AppError {
   details?: unknown;
 }
 
-// Query Keys for React Query
 export const QUERY_KEYS = {
   countries: ["countries"] as const,
   indicators: ["indicators"] as const,
@@ -183,7 +173,6 @@ export const QUERY_KEYS = {
   snapshot: (params: SnapshotParams) => ["snapshot", params] as const,
 } as const;
 
-// Default Values
 export const DEFAULT_FILTERS: FilterState = {
   indicator: "NY.GDP.PCAP.CD",
   countries: ["IND"],
@@ -210,16 +199,15 @@ export const DEFAULT_INDICATORS: Indicator[] = [
   },
 ];
 
-// Chart Colors
 export const CHART_COLORS = [
-  "#3b82f6", // blue-500
-  "#ef4444", // red-500
-  "#10b981", // emerald-500
-  "#f59e0b", // amber-500
-  "#8b5cf6", // violet-500
-  "#06b6d4", // cyan-500
-  "#84cc16", // lime-500
-  "#f97316", // orange-500
-  "#ec4899", // pink-500
-  "#6b7280", // gray-500
+  "#3b82f6",
+  "#ef4444",
+  "#10b981",
+  "#f59e0b",
+  "#8b5cf6",
+  "#06b6d4",
+  "#84cc16",
+  "#f97316",
+  "#ec4899",
+  "#6b7280",
 ] as const;
