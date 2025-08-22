@@ -178,6 +178,7 @@ export interface AppError {
 export const QUERY_KEYS = {
   countries: ["countries"] as const,
   indicators: ["indicators"] as const,
+  userProfile: ["userProfile"] as const,
   series: (params: SeriesParams) => ["series", params] as const,
   snapshot: (params: SnapshotParams) => ["snapshot", params] as const,
 } as const;

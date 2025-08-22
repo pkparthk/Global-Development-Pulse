@@ -47,8 +47,48 @@ export function useAuth() {
     isLoggingIn: loginMutation.isPending,
     isLoggingOut: logoutMutation.isPending,
     isAuthenticated: apiService.isAuthenticated(),
-    currentUser: apiService.getCurrentUser(),
   };
+}
+
+export function useUserProfile() {
+  const queryClient = useQueryClient();
+
+  return useQuery({
+    queryKey: QUERY_KEYS.userProfile,
+    queryFn: async () => {
+      // Check if user is authenticated before making the request
+      if (!apiService.isAuthenticated()) {
+        throw new Error("User not authenticated");
+      }
+
+      try {
+        return await apiService.getUserProfile();
+      } catch (error) {
+        // If we get a 401, the token is likely invalid
+        if (error instanceof ApiError && error.status === 401) {
+          console.warn("Invalid token detected, clearing authentication");
+          apiService.setAccessToken(null);
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("refresh_token");
+          // Clear all cached data
+          queryClient.clear();
+          // Redirect to login
+          window.location.href = "/login";
+        }
+        throw error;
+      }
+    },
+    enabled: apiService.isAuthenticated(),
+    staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
+    retry: (failureCount, error) => {
+      // Don't retry on auth errors
+      if (error instanceof ApiError && error.status === 401) {
+        return false;
+      }
+      return failureCount < 2;
+    },
+  });
 }
 
 export function useCountries() {

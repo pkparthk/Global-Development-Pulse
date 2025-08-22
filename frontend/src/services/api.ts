@@ -359,6 +359,24 @@ class ApiService {
 
     return null;
   }
+
+  /**
+   * Get current user profile from API
+   */
+  async getUserProfile(): Promise<User> {
+    // Debug: Check if we have a token
+    if (!this.accessToken) {
+      console.warn("No access token available for profile request");
+      throw new ApiError("No authentication token", "NO_TOKEN", 401);
+    }
+
+    console.log(
+      "Fetching user profile with token:",
+      this.accessToken?.substring(0, 20) + "..."
+    );
+    const response = await this.request<{ user: User }>("/api/auth/profile/");
+    return response.user;
+  }
 }
 
 /**

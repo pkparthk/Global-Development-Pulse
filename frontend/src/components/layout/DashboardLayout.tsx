@@ -5,23 +5,25 @@ import {
   BarChart3,
   Globe,
   TrendingUp,
-  Settings,
+  // Settings,
   Mail,
-  Calendar,
+  // Calendar,
   X,
   // Bell
 } from "lucide-react";
-import { toast } from "sonner";
+// import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAuth } from "@/services/queries";
+import { useAuth, useUserProfile } from "@/services/queries";
+import { apiService } from "@/services/api";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { logout, currentUser, isLoggingOut } = useAuth();
+  const { logout, isLoggingOut, isAuthenticated } = useAuth();
+  const { data: currentUser, isLoading, error } = useUserProfile();
   const [showProfile, setShowProfile] = useState(false);
 
   const handleLogout = () => {
@@ -32,11 +34,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     setShowProfile(!showProfile);
   };
 
+  // If not authenticated, redirect to login
+  if (!isAuthenticated) {
+    window.location.href = "/login";
+    return null;
+  }
+
+  // Fallback user data from token if API fails
+  const displayUser = currentUser || apiService.getCurrentUser();
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Modern Header */}
       <header className="bg-white/95 backdrop-blur-sm shadow-lg border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center space-x-4">
               <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-2 rounded-xl">
@@ -104,7 +115,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {currentUser ? (
+                      {displayUser ? (
                         <>
                           <div className="flex items-center space-x-3">
                             <div className="bg-blue-100 rounded-full p-2">
@@ -112,17 +123,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                             </div>
                             <div>
                               <p className="font-medium text-gray-900">
-                                {currentUser.first_name && currentUser.last_name
-                                  ? `${currentUser.first_name} ${currentUser.last_name}`
-                                  : currentUser.username}
+                                {displayUser.first_name && displayUser.last_name
+                                  ? `${displayUser.first_name} ${displayUser.last_name}`
+                                  : displayUser.username}
                               </p>
                               <p className="text-sm text-gray-500">
-                                @{currentUser.username}
+                                @{displayUser.username}
                               </p>
                             </div>
                           </div>
 
-                          {currentUser.email && (
+                          {displayUser.email && (
                             <div className="flex items-center space-x-3">
                               <div className="bg-green-100 rounded-full p-2">
                                 <Mail className="h-5 w-5 text-green-600" />
@@ -132,13 +143,13 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                                   Email
                                 </p>
                                 <p className="text-sm text-gray-500">
-                                  {currentUser.email}
+                                  {displayUser.email}
                                 </p>
                               </div>
                             </div>
                           )}
 
-                          <div className="flex items-center space-x-3">
+                          {/* <div className="flex items-center space-x-3">
                             <div className="bg-purple-100 rounded-full p-2">
                               <Calendar className="h-5 w-5 text-purple-600" />
                             </div>
@@ -147,40 +158,31 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                                 User ID
                               </p>
                               <p className="text-sm text-gray-500">
-                                #{currentUser.id}
+                                #{displayUser.id}
                               </p>
                             </div>
-                          </div>
-
-                          <div className="pt-3 border-t">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full mb-2"
-                              onClick={() => {
-                                // For now, just show user info. Could be expanded later.
-                                toast.info("Profile management coming soon!");
-                                setShowProfile(false);
-                              }}
-                            >
-                              <Settings className="h-4 w-4 mr-2" />
-                              Account Settings
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full border-red-200 text-red-600 hover:bg-red-50"
-                              onClick={() => {
-                                setShowProfile(false);
-                                handleLogout();
-                              }}
-                              disabled={isLoggingOut}
-                            >
-                              <LogOut className="h-4 w-4 mr-2" />
-                              {isLoggingOut ? "Logging out..." : "Logout"}
-                            </Button>
-                          </div>
+                          </div> */}
+                          {error && (
+                            <div className="text-center text-xs text-orange-500 mt-2">
+                              Profile data from cache (API unavailable)
+                            </div>
+                          )}
                         </>
+                      ) : isLoading ? (
+                        <div className="text-center py-4">
+                          <p className="text-gray-500">
+                            Loading user information...
+                          </p>
+                        </div>
+                      ) : error ? (
+                        <div className="text-center py-4">
+                          <p className="text-red-500">
+                            Failed to load user information
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {error.message}
+                          </p>
+                        </div>
                       ) : (
                         <div className="text-center py-4">
                           <p className="text-gray-500">
