@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
+import dj_database_url
 import sys
 
 # Detect test mode so we can use a local SQLite DB for tests (avoids needing admin
@@ -75,38 +76,24 @@ if IS_TESTING:
         }
     }
 else:
-    # For development, using SQLite. For production, switch to MongoDB Atlas
-    if config('USE_MONGODB', default=False, cast=bool):
-        # MongoDB Atlas connection
-        mongodb_uri = config('MONGODB_URI', default='')
-        if mongodb_uri:
-            DATABASES = {
-                'default': {
-                    'ENGINE': 'djongo',
-                    'NAME': config('MONGODB_NAME', default='global_development_pulse'),
-                    'CLIENT': {
-                        'host': mongodb_uri,
-                    }
-                }
-            }
-        else:
-            # Local MongoDB fallback
-            DATABASES = {
-                'default': {
-                    'ENGINE': 'djongo',
-                    'NAME': config('MONGODB_NAME', default='global_development_pulse'),
-                    'CLIENT': {
-                        'host': config('MONGODB_HOST', default='localhost'),
-                        'port': config('MONGODB_PORT', default=27017, cast=int),
-                        'username': config('MONGODB_USER', default=''),
-                        'password': config('MONGODB_PASSWORD', default=''),
-                        'authSource': config('MONGODB_AUTH_SOURCE', default='admin'),
-                        'authMechanism': 'SCRAM-SHA-1',
-                    }
-                }
-            }
+    # Prefer DATABASE_URL (Postgres) in production. Fall back to a local sqlite DB for development.
+    database_url = config('DATABASE_URL', default='')
+    if database_url:
+        DATABASES = {
+            'default': dj_database_url.parse(database_url, conn_max_age=600)
+        }
     else:
-        raise RuntimeError("USE_MONGODB is not enabled. Please set USE_MONGODB=True in your environment to use MongoDB Atlas")
+        # Local sqlite dev database
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.sqlite3',
+                'NAME': BASE_DIR / 'db.sqlite3',
+            }
+        }
+
+# MongoDB (atlas) can still be used for analytics via mongoengine if USE_MONGODB=True
+# and should not be used as Django's primary DB. Keep the USE_MONGODB flag for optional
+# analytics-only connections handled elsewhere in the codebase.
 
 # Cache configuration
 # For development, using dummy cache. For production, switch to Redis
