@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
-import dj_database_url
 import sys
 
 # Detect test mode so we can use a local SQLite DB for tests (avoids needing admin
@@ -79,24 +78,26 @@ if IS_TESTING:
         }
     }
 else:
-    # Prefer DATABASE_URL (Postgres) in production. Fall back to a local sqlite DB for development.
-    database_url = config('DATABASE_URL', default='')
-    if database_url:
+    # Use MongoDB Atlas as primary database via djongo
+    mongodb_uri = config('MONGODB_URI', default='')
+    if mongodb_uri:
         DATABASES = {
-            'default': dj_database_url.parse(database_url, conn_max_age=600)
+            'default': {
+                'ENGINE': 'djongo',
+                'NAME': config('MONGODB_NAME', default='global_development_pulse'),
+                'CLIENT': {
+                    'host': mongodb_uri,
+                }
+            }
         }
     else:
-        # Local sqlite dev database
+        # Fallback to local SQLite for development if no MongoDB URI provided
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.sqlite3',
                 'NAME': BASE_DIR / 'db.sqlite3',
             }
         }
-
-# MongoDB (atlas) can still be used for analytics via mongoengine if USE_MONGODB=True
-# and should not be used as Django's primary DB. Keep the USE_MONGODB flag for optional
-# analytics-only connections handled elsewhere in the codebase.
 
 # Cache configuration
 # For development, using dummy cache. For production, switch to Redis
