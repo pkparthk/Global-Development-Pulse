@@ -1,4 +1,4 @@
-# Global Development Pulse - Frontend 🎨
+# Global Development Pulse - Frontend
 
 A modern React TypeScript frontend application for visualizing World Bank development indicators with interactive charts and comprehensive user interface.
 
@@ -466,44 +466,6 @@ getTTFB(console.log);
 - **Build-time Checks**: Validate configuration
 - **Error Boundaries**: Graceful error handling
 
-## 🤝 Contributing
-
-### Getting Started
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Make changes and add tests
-4. Run linting: `npm run lint`
-5. Run tests: `npm test`
-6. Commit changes: `git commit -m 'feat: add amazing feature'`
-7. Push to branch: `git push origin feature/amazing-feature`
-8. Open Pull Request
-
-### Development Standards
-
-- **Code Style**: ESLint + Prettier configuration
-- **Naming Conventions**: PascalCase for components, camelCase for functions
-- **File Organization**: Feature-based structure
-- **Type Safety**: Strict TypeScript configuration
-
-### Component Guidelines
-
-```typescript
-// Component template
-interface ComponentProps {
-  // Props with documentation
-  title: string;
-  optional?: boolean;
-}
-
-export const Component: React.FC<ComponentProps> = ({
-  title,
-  optional = false,
-}) => {
-  // Implementation
-  return <div className="component-class">{title}</div>;
-};
-```
 
 ## 📚 Resources
 
@@ -539,41 +501,7 @@ npm run clean          # Clean build files
 npm audit              # Security audit
 ```
 
-## 🐛 Troubleshooting
-
-### Common Issues
-
-#### Build Errors
-
-```bash
-# Clear cache and reinstall
-rm -rf node_modules package-lock.json
-npm install
-
-# Type errors
-npm run type-check
-```
-
-#### Development Server Issues
-
-```bash
-# Port already in use
-lsof -ti:3000 | xargs kill -9
-
-# Clear Vite cache
-rm -rf node_modules/.vite
-```
-
-#### Environment Variables
-
-```bash
-# Check environment loading
-console.log(import.meta.env)
-
-# Verify .env file exists
-ls -la .env*
-```
-
+---
 
 <div align="center">
 

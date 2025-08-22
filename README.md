@@ -430,11 +430,6 @@ git push origin feature/amazing-feature
 - **Django & React Communities** - For excellent documentation and support
 - **Open Source Contributors** - For the amazing tools and libraries used
 
-## 📞 Support
-
-- **Issues**: [GitHub Issues](https://github.com/pkparthk/Global-Development-Pulse/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/pkparthk/Global-Development-Pulse/discussions)
-
 ---
 
 <div align="center">

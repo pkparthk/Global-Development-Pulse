@@ -1,4 +1,4 @@
-# Global Development Pulse - Backend 🚀
+# Global Development Pulse - Backend
 
 A robust Django REST API backend for serving World Bank development indicators with comprehensive caching, authentication, and data management capabilities.
 
@@ -647,71 +647,6 @@ python manage.py dbshell
 python manage.py shell
 ```
 
-## 🔍 Monitoring & Logging
-
-### Logging Configuration
-
-```python
-LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-        'verbose': {
-            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
-            'style': '{',
-        },
-    },
-    'handlers': {
-        'console': {
-            'level': 'INFO',
-            'class': 'logging.StreamHandler',
-            'formatter': 'verbose',
-        },
-        'file': {
-            'level': 'ERROR',
-            'class': 'logging.FileHandler',
-            'filename': 'django_errors.log',
-            'formatter': 'verbose',
-        },
-    },
-    'loggers': {
-        'django': {
-            'handlers': ['console', 'file'],
-            'level': 'INFO',
-            'propagate': True,
-        },
-        'api': {
-            'handlers': ['console', 'file'],
-            'level': 'DEBUG',
-            'propagate': True,
-        },
-    },
-}
-```
-
-### Performance Monitoring
-
-```python
-# api/middleware.py
-import time
-import logging
-
-logger = logging.getLogger(__name__)
-
-class PerformanceMiddleware:
-    def __init__(self, get_response):
-        self.get_response = get_response
-
-    def __call__(self, request):
-        start_time = time.time()
-
-        response = self.get_response(request)
-
-        duration = time.time() - start_time
-        logger.info(f"{request.method} {request.path} - {response.status_code} - {duration:.3f}s")
-
-        return response
-```
 
 ## 🔐 Security Best Practices
 
@@ -760,102 +695,7 @@ if not DEBUG:
     SECURE_HSTS_PRELOAD = True
 ```
 
-## 🤝 Contributing
-
-### Development Setup
-
-1. Fork the repository
-2. Create feature branch: `git checkout -b feature/amazing-feature`
-3. Setup development environment
-4. Make changes and add tests
-5. Run tests: `python manage.py test`
-6. Check code style: `black . && flake8 .`
-7. Commit changes: `git commit -m 'feat: add amazing feature'`
-8. Push to branch: `git push origin feature/amazing-feature`
-9. Open Pull Request
-
-### Code Standards
-
-- **PEP 8**: Python code style guide
-- **Black**: Code formatting
-- **Type Hints**: Use type annotations where possible
-- **Docstrings**: Document all functions and classes
-- **Tests**: Maintain >80% test coverage
-
-### Development Guidelines
-
-```python
-# Example: Model with proper documentation
-class Country(models.Model):
-    """
-    Country metadata from World Bank API.
-
-    Stores information about countries including ISO codes,
-    names, regions, and income levels.
-    """
-    code = models.CharField(
-        max_length=3,
-        unique=True,
-        help_text="ISO 3-letter country code"
-    )
-    name = models.CharField(
-        max_length=255,
-        help_text="Country name"
-    )
-
-    class Meta:
-        db_table = 'countries'
-        ordering = ['name']
-        verbose_name_plural = 'Countries'
-
-    def __str__(self) -> str:
-        return f"{self.name} ({self.code})"
-```
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-#### Database Connection Errors
-
-```bash
-# Check MongoDB connection
-python manage.py shell -c "from django.db import connection; connection.ensure_connection()"
-
-# Reset database
-python manage.py flush --noinput
-python manage.py migrate
-```
-
-#### Cache Issues
-
-```bash
-# Clear Redis cache
-python manage.py shell -c "from django.core.cache import cache; cache.clear()"
-
-# Test Redis connection
-redis-cli ping
-```
-
-#### Migration Problems
-
-```bash
-# Reset migrations
-find . -path "*/migrations/*.py" -not -name "__init__.py" -delete
-find . -path "*/migrations/*.pyc" -delete
-python manage.py makemigrations
-python manage.py migrate
-```
-
-#### API Rate Limiting
-
-```python
-# Check throttle status
-from rest_framework.throttling import UserRateThrottle
-throttle = UserRateThrottle()
-throttle.get_cache_key(request, view)
-```
-
+---
 
 <div align="center">
 
