@@ -18,7 +18,9 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 # ALLOWED_HOSTS configuration
 # Always include Render domain and localhost for flexibility
 default_hosts = 'global-development-pulse-backend.onrender.com,localhost,127.0.0.1'
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default=default_hosts).split(',')
+# Read ALLOWED_HOSTS from env and strip whitespace from each entry to avoid
+# mismatches caused by accidental spaces (e.g. 'a, b'). Fall back to default_hosts.
+ALLOWED_HOSTS = [h.strip() for h in config('ALLOWED_HOSTS', default=default_hosts).split(',') if h.strip()]
 
 # Application definition
 INSTALLED_APPS = [
