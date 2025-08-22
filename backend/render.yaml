@@ -3,9 +3,8 @@ services:
     name: global-development-pulse-backend
     env: python
     region: oregon
-    buildCommand: python -m pip install -r backend/requirements.txt
+    buildCommand: pip install -r requirements.txt
     startCommand: >
-      cd backend &&
       python manage.py migrate --noinput &&
       python manage.py collectstatic --noinput &&
       gunicorn project.wsgi:application --bind 0.0.0.0:$PORT
