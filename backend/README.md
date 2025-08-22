@@ -598,7 +598,7 @@ class AuthenticationTestCase(TestCase):
 DJANGO_SECRET_KEY=your-production-secret-key
 DEBUG=False
 ALLOWED_HOSTS=your-app.onrender.com
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net/
+MONGODB_URI=yout-mongodb-url
 REDIS_URL=redis://user:pass@redis-host:port
 ```
 
@@ -704,3 +704,4 @@ if not DEBUG:
 [Frontend](../frontend/README.md) • [Main Documentation](../README.md)
 
 </div>
+
