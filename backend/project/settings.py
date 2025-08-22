@@ -4,8 +4,6 @@ from decouple import config
 from datetime import timedelta
 import sys
 
-# Detect test mode so we can use a local SQLite DB for tests (avoids needing admin
-# permissions on MongoDB Atlas when Django creates/destroys test databases).
 IS_TESTING = 'test' in sys.argv or any('pytest' in arg for arg in sys.argv)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -161,6 +159,19 @@ WORLD_BANK_API_BASE = config('WORLD_BANK_API_BASE', default='https://api.worldba
 
 # Cache TTL (6 hours as per PRD)
 CACHE_TTL = 6 * 60 * 60  # 6 hours in seconds
+
+# Static files (CSS, JavaScript, Images)
+# https://docs.djangoproject.com/en/4.2/howto/static-files/
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+
+# Additional locations of static files
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'static'),
+]
+
+# Static files storage (for production with WhiteNoise)
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Logging configuration
 LOGGING = {

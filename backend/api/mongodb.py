@@ -1,8 +1,3 @@
-"""
-MongoDB connection and models using MongoEngine
-This provides a secondary database for analytics and non-relational data
-while keeping Django auth on the relational database.
-"""
 import os
 from mongoengine import connect, Document, StringField, DateTimeField, IntField, FloatField, ListField, BooleanField
 from datetime import datetime
