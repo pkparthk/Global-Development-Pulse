@@ -22,7 +22,8 @@ RUN apt-get update \
 
 # Copy requirements first for better caching
 COPY requirements.txt /app/
-RUN pip install --upgrade pip \
+# Ensure pip, setuptools and wheel are up-to-date so pkg_resources is available at runtime
+RUN pip install --upgrade pip setuptools wheel \
     && pip install --no-cache-dir -r requirements.txt
 
 # Copy project files
