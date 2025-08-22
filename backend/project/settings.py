@@ -2,6 +2,11 @@ import os
 from pathlib import Path
 from decouple import config
 from datetime import timedelta
+import sys
+
+# Detect test mode so we can use a local SQLite DB for tests (avoids needing admin
+# permissions on MongoDB Atlas when Django creates/destroys test databases).
+IS_TESTING = 'test' in sys.argv or any('pytest' in arg for arg in sys.argv)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -61,29 +66,47 @@ TEMPLATES = [
 WSGI_APPLICATION = 'project.wsgi.application'
 
 # Database configuration
-# For development, using SQLite. For production, switch to MongoDB
-if config('USE_MONGODB', default=False, cast=bool):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'djongo',
-            'NAME': config('MONGODB_NAME', default='global_development_pulse'),
-            'CLIENT': {
-                'host': config('MONGODB_HOST', default='localhost'),
-                'port': config('MONGODB_PORT', default=27017, cast=int),
-                'username': config('MONGODB_USER', default=''),
-                'password': config('MONGODB_PASSWORD', default=''),
-                'authSource': config('MONGODB_AUTH_SOURCE', default='admin'),
-                'authMechanism': 'SCRAM-SHA-1',
-            }
-        }
-    }
-else:
+# When running tests, use a local SQLite DB to avoid creating/dropping databases on Atlas.
+if IS_TESTING:
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
+            'NAME': BASE_DIR / 'test_db.sqlite3',
         }
     }
+else:
+    # For development, using SQLite. For production, switch to MongoDB Atlas
+    if config('USE_MONGODB', default=False, cast=bool):
+        # MongoDB Atlas connection
+        mongodb_uri = config('MONGODB_URI', default='')
+        if mongodb_uri:
+            DATABASES = {
+                'default': {
+                    'ENGINE': 'djongo',
+                    'NAME': config('MONGODB_NAME', default='global_development_pulse'),
+                    'CLIENT': {
+                        'host': mongodb_uri,
+                    }
+                }
+            }
+        else:
+            # Local MongoDB fallback
+            DATABASES = {
+                'default': {
+                    'ENGINE': 'djongo',
+                    'NAME': config('MONGODB_NAME', default='global_development_pulse'),
+                    'CLIENT': {
+                        'host': config('MONGODB_HOST', default='localhost'),
+                        'port': config('MONGODB_PORT', default=27017, cast=int),
+                        'username': config('MONGODB_USER', default=''),
+                        'password': config('MONGODB_PASSWORD', default=''),
+                        'authSource': config('MONGODB_AUTH_SOURCE', default='admin'),
+                        'authMechanism': 'SCRAM-SHA-1',
+                    }
+                }
+            }
+    else:
+        raise RuntimeError("USE_MONGODB is not enabled. Please set USE_MONGODB=True in your environment to use MongoDB Atlas")
 
 # Cache configuration
 # For development, using dummy cache. For production, switch to Redis
@@ -103,36 +126,6 @@ else:
             'BACKEND': 'django.core.cache.backends.dummy.DummyCache',
         }
     }
-
-# Password validation
-AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
-]
-
-# Internationalization
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
-
-# Static files (CSS, JavaScript, Images)
-STATIC_URL = '/static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
-
-# Default primary key field type
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # REST Framework configuration
 REST_FRAMEWORK = {

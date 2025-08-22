@@ -9,12 +9,19 @@ from django.contrib.auth.models import User
 from django.views.decorators.cache import cache_page
 from django.views.decorators.vary import vary_on_headers
 from .serializers import (
-    LoginSerializer, UserSerializer, SeriesDataSerializer, SnapshotDataSerializer,
+    LoginSerializer, RegisterSerializer, UserSerializer, SeriesDataSerializer, SnapshotDataSerializer,
     SeriesResponseSerializer, SnapshotResponseSerializer, CountrySerializer,
     IndicatorSerializer, ErrorSerializer
 )
 from .services.worldbank import WorldBankService, WorldBankAPIError
 from .utils import log_api_request
+
+# MongoDB integration
+try:
+    from .mongodb import save_analytics_event, AnalyticsEvent
+    MONGODB_AVAILABLE = True
+except ImportError:
+    MONGODB_AVAILABLE = False
 
 logger = logging.getLogger(__name__)
 
@@ -73,11 +80,66 @@ def login_view(request):
     
     log_api_request(request, 'login_success', user=user)
     
+    # Track login in MongoDB if available
+    if MONGODB_AVAILABLE:
+        save_analytics_event(
+            user_id=user.id,
+            username=user.username,
+            event_type='user_login',
+            event_data='{"method": "password"}',
+            request=request
+        )
+    
     return Response({
         'access': str(access),
         'refresh': str(refresh),
         'user': UserSerializer(user).data
     }, status=status.HTTP_200_OK)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_view(request):
+    """
+    User registration endpoint
+    """
+    log_api_request(request, 'register_attempt')
+    
+    # Debug logging
+    logger.info(f"Registration data received: {request.data}")
+    
+    serializer = RegisterSerializer(data=request.data)
+    if not serializer.is_valid():
+        logger.error(f"Registration validation errors: {serializer.errors}")
+        return create_error_response(
+            'VALIDATION_ERROR',
+            'Invalid input data',
+            serializer.errors,
+            status.HTTP_400_BAD_REQUEST
+        )
+    
+    try:
+        user = serializer.save()
+        log_api_request(request, 'register_success', user=user)
+        
+        # Generate JWT tokens for immediate login
+        refresh = RefreshToken.for_user(user)
+        access = refresh.access_token
+        
+        return Response({
+            'access': str(access),
+            'refresh': str(refresh),
+            'user': UserSerializer(user).data,
+            'message': 'Registration successful'
+        }, status=status.HTTP_201_CREATED)
+        
+    except Exception as e:
+        logger.error(f"Registration error: {e}")
+        return create_error_response(
+            'REGISTRATION_ERROR',
+            'Failed to create user account',
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
 
 
 @api_view(['POST'])

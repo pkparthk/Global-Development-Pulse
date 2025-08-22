@@ -1,5 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
+import re
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -15,6 +17,70 @@ class LoginSerializer(serializers.Serializer):
     """Serializer for login requests"""
     username = serializers.CharField()
     password = serializers.CharField(write_only=True)
+
+
+class RegisterSerializer(serializers.ModelSerializer):
+    """Serializer for user registration"""
+    password = serializers.CharField(write_only=True, validators=[validate_password])
+    password_confirm = serializers.CharField(write_only=True)
+    
+    class Meta:
+        model = User
+        fields = ['username', 'email', 'first_name', 'last_name', 'password', 'password_confirm']
+        extra_kwargs = {
+            'email': {'required': True},
+            'first_name': {'required': True},
+            'last_name': {'required': True}
+        }
+    
+    def validate_password(self, value):
+        """
+        Custom password validation to match frontend requirements
+        """
+        # Use Django's built-in password validation first
+        validate_password(value)
+        
+        # Additional custom validations
+        if len(value) < 8:
+            raise serializers.ValidationError("Password must be at least 8 characters long")
+        
+        if not re.search(r'[a-zA-Z]', value):
+            raise serializers.ValidationError("Password must contain at least one letter")
+        
+        if not re.search(r'[0-9]', value):
+            raise serializers.ValidationError("Password must contain at least one number")
+        
+        if not re.search(r'[^a-zA-Z0-9]', value):
+            raise serializers.ValidationError("Password must contain at least one special character")
+        
+        if re.match(r'^\d+$', value):
+            raise serializers.ValidationError("Password cannot be only numbers")
+        
+        return value
+
+    def validate(self, attrs):
+        """Validate that passwords match"""
+        if attrs['password'] != attrs['password_confirm']:
+            raise serializers.ValidationError("Passwords don't match")
+        return attrs
+    
+    def validate_email(self, value):
+        """Validate email is unique"""
+        if User.objects.filter(email=value).exists():
+            raise serializers.ValidationError("A user with this email already exists")
+        return value
+    
+    def validate_username(self, value):
+        """Validate username is unique"""
+        if User.objects.filter(username=value).exists():
+            raise serializers.ValidationError("A user with this username already exists")
+        return value
+    
+    def create(self, validated_data):
+        """Create user with encrypted password"""
+        validated_data.pop('password_confirm')
+        user = User.objects.create_user(**validated_data)
+        return user
 
 
 class SeriesDataSerializer(serializers.Serializer):
